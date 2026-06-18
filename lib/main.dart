@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
+
 import 'features/devices/add_device_page.dart';
 import 'features/devices/device_list_page.dart';
 import 'services/device_service.dart';
 import 'services/notification_service.dart';
+import 'features/maintenance/maintenance_calendar_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -104,6 +107,79 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
+  Widget statusChart() {
+    final total = DeviceService.totalDevices;
+    final upcoming = DeviceService.upcomingCount;
+    final overdue = DeviceService.overdueCount;
+    final normal = total - upcoming - overdue;
+
+    if (total == 0) {
+      return const Card(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Text("Grafik için henüz cihaz eklenmedi"),
+        ),
+      );
+    }
+
+    return Card(
+      elevation: 3,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            const Text(
+              "Bakım Durumu Dağılımı",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 180,
+              child: PieChart(
+                PieChartData(
+                  sections: [
+                    PieChartSectionData(
+                      value: normal.toDouble(),
+                      title: "Normal\n$normal",
+                      radius: 60,
+                      color: Colors.green,
+                      titleStyle: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    PieChartSectionData(
+                      value: upcoming.toDouble(),
+                      title: "Yaklaşan\n$upcoming",
+                      radius: 60,
+                      color: Colors.orange,
+                      titleStyle: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    PieChartSectionData(
+                      value: overdue.toDouble(),
+                      title: "Geciken\n$overdue",
+                      radius: 60,
+                      color: Colors.red,
+                      titleStyle: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                  sectionsSpace: 2,
+                  centerSpaceRadius: 30,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final total = DeviceService.totalDevices.toString();
@@ -170,6 +246,10 @@ class _DashboardPageState extends State<DashboardPage> {
               ],
             ),
 
+            const SizedBox(height: 16),
+
+            statusChart(),
+
             const SizedBox(height: 24),
 
             actionButton(
@@ -185,6 +265,22 @@ class _DashboardPageState extends State<DashboardPage> {
               icon: Icons.list,
               onPressed: openDeviceListPage,
             ),
+
+            const SizedBox(height: 12),
+
+            actionButton(
+              text: "Bakım Takvimini Gör",
+              icon: Icons.calendar_month,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MaintenanceCalendarPage(),
+                  ),
+                );
+              },
+            ),
+
             const SizedBox(height: 12),
 
             actionButton(
