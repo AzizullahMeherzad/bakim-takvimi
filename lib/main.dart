@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'features/devices/add_device_page.dart';
 import 'features/devices/device_list_page.dart';
 import 'services/device_service.dart';
+import 'services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await DeviceService.loadDevices();
+  await NotificationService.initialize();
 
   runApp(const BakimTakvimiApp());
 }
@@ -182,6 +184,18 @@ class _DashboardPageState extends State<DashboardPage> {
               text: "Cihazları Görüntüle",
               icon: Icons.list,
               onPressed: openDeviceListPage,
+            ),
+            const SizedBox(height: 12),
+
+            actionButton(
+              text: "Test Bildirimi Gönder",
+              icon: Icons.notifications,
+              onPressed: () {
+                NotificationService.showInstantNotification(
+                  title: "Bakım Uyarısı",
+                  body: "Jeneratör bakım süresi yaklaşıyor.",
+                );
+              },
             ),
           ],
         ),

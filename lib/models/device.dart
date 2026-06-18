@@ -6,6 +6,7 @@ class Device {
   final String location;
   final DateTime lastMaintenanceDate;
   final int maintenanceIntervalMonths;
+  final String? documentPath;
 
   Device({
     required this.id,
@@ -15,6 +16,7 @@ class Device {
     required this.location,
     required this.lastMaintenanceDate,
     required this.maintenanceIntervalMonths,
+    this.documentPath,
   });
 
   DateTime get nextMaintenanceDate {
@@ -44,6 +46,7 @@ class Device {
       'location': location,
       'lastMaintenanceDate': lastMaintenanceDate.toIso8601String(),
       'maintenanceIntervalMonths': maintenanceIntervalMonths,
+      'documentPath': documentPath,
     };
   }
 
@@ -56,6 +59,7 @@ class Device {
       location: json['location'],
       lastMaintenanceDate: DateTime.parse(json['lastMaintenanceDate']),
       maintenanceIntervalMonths: json['maintenanceIntervalMonths'],
+      documentPath: json['documentPath'],
     );
   }
 }

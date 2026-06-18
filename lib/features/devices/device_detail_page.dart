@@ -3,13 +3,26 @@ import '../../models/device.dart';
 import '../../services/device_service.dart';
 import 'edit_device_page.dart';
 
-class DeviceDetailPage extends StatelessWidget {
+class DeviceDetailPage extends StatefulWidget {
   final Device device;
 
   const DeviceDetailPage({
     super.key,
     required this.device,
   });
+
+  @override
+  State<DeviceDetailPage> createState() => _DeviceDetailPageState();
+}
+
+class _DeviceDetailPageState extends State<DeviceDetailPage> {
+  late Device device;
+
+  @override
+  void initState() {
+    super.initState();
+    device = widget.device;
+  }
 
   String formatDate(DateTime date) {
     return "${date.day}.${date.month}.${date.year}";
@@ -19,6 +32,22 @@ class DeviceDetailPage extends StatelessWidget {
     if (device.isOverdue) return "Gecikmiş";
     if (device.isUpcoming) return "Yaklaşıyor";
     return "Normal";
+  }
+
+  String getDocumentName() {
+    if (device.documentPath == null || device.documentPath!.isEmpty) {
+      return "Belge eklenmedi";
+    }
+
+    return device.documentPath!.split('\\').last;
+  }
+
+  Future<void> pickPdf() async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("PDF özelliği sonraki sürümde eklenecek"),
+      ),
+    );
   }
 
   Future<void> deleteDevice(BuildContext context) async {
@@ -52,6 +81,11 @@ class DeviceDetailPage extends StatelessWidget {
                   ListTile(title: const Text("Son Bakım Tarihi"), subtitle: Text(formatDate(device.lastMaintenanceDate))),
                   ListTile(title: const Text("Sonraki Bakım Tarihi"), subtitle: Text(formatDate(device.nextMaintenanceDate))),
                   ListTile(title: const Text("Durum"), subtitle: Text(getStatusText())),
+                  ListTile(
+                    leading: const Icon(Icons.picture_as_pdf),
+                    title: const Text("Bakım Belgesi"),
+                    subtitle: Text(getDocumentName()),
+                  ),
                 ],
               ),
             ),
@@ -59,13 +93,23 @@ class DeviceDetailPage extends StatelessWidget {
             const SizedBox(height: 24),
 
             ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
+              onPressed: pickPdf,
+              icon: const Icon(Icons.upload_file),
+              label: const Text("PDF Belge Ekle"),
+            ),
+
+            const SizedBox(height: 12),
+
+            ElevatedButton.icon(
+              onPressed: () async {
+                await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => EditDevicePage(device: device),
                   ),
                 );
+
+                setState(() {});
               },
               icon: const Icon(Icons.edit),
               label: const Text("Düzenle"),
