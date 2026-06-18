@@ -2,21 +2,39 @@ import 'package:flutter/material.dart';
 import '../../models/device.dart';
 import '../../services/device_service.dart';
 
-class AddDevicePage extends StatefulWidget {
-  const AddDevicePage({super.key});
+class EditDevicePage extends StatefulWidget {
+  final Device device;
+
+  const EditDevicePage({
+    super.key,
+    required this.device,
+  });
 
   @override
-  State<AddDevicePage> createState() => _AddDevicePageState();
+  State<EditDevicePage> createState() => _EditDevicePageState();
 }
 
-class _AddDevicePageState extends State<AddDevicePage> {
-  final nameController = TextEditingController();
-  final categoryController = TextEditingController();
-  final serialController = TextEditingController();
-  final locationController = TextEditingController();
+class _EditDevicePageState extends State<EditDevicePage> {
+  late TextEditingController nameController;
+  late TextEditingController categoryController;
+  late TextEditingController serialController;
+  late TextEditingController locationController;
 
-  int intervalMonths = 6;
-  DateTime lastMaintenanceDate = DateTime.now();
+  late int intervalMonths;
+  late DateTime lastMaintenanceDate;
+
+  @override
+  void initState() {
+    super.initState();
+
+    nameController = TextEditingController(text: widget.device.name);
+    categoryController = TextEditingController(text: widget.device.category);
+    serialController = TextEditingController(text: widget.device.serialNumber);
+    locationController = TextEditingController(text: widget.device.location);
+
+    intervalMonths = widget.device.maintenanceIntervalMonths;
+    lastMaintenanceDate = widget.device.lastMaintenanceDate;
+  }
 
   DateTime get nextMaintenanceDate {
     return DateTime(
@@ -24,26 +42,6 @@ class _AddDevicePageState extends State<AddDevicePage> {
       lastMaintenanceDate.month + intervalMonths,
       lastMaintenanceDate.day,
     );
-  }
-
-  Future<void> saveDevice() async {
-    final device = Device(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: nameController.text,
-      category: categoryController.text,
-      serialNumber: serialController.text,
-      location: locationController.text,
-      lastMaintenanceDate: lastMaintenanceDate,
-      maintenanceIntervalMonths: intervalMonths,
-    );
-
-    await DeviceService.addDevice(device);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Cihaz başarıyla eklendi")),
-    );
-
-    Navigator.pop(context);
   }
 
   String formatDate(DateTime date) {
@@ -65,11 +63,32 @@ class _AddDevicePageState extends State<AddDevicePage> {
     }
   }
 
+  Future<void> updateDevice() async {
+    final updatedDevice = Device(
+      id: widget.device.id,
+      name: nameController.text,
+      category: categoryController.text,
+      serialNumber: serialController.text,
+      location: locationController.text,
+      lastMaintenanceDate: lastMaintenanceDate,
+      maintenanceIntervalMonths: intervalMonths,
+    );
+
+    await DeviceService.updateDevice(updatedDevice);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Cihaz güncellendi")),
+    );
+
+    Navigator.pop(context);
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Cihaz Ekle"),
+        title: const Text("Cihaz Düzenle"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -91,16 +110,13 @@ class _AddDevicePageState extends State<AddDevicePage> {
               controller: locationController,
               decoration: const InputDecoration(labelText: "Konum"),
             ),
-
             const SizedBox(height: 20),
-
             ListTile(
               title: const Text("Son Bakım Tarihi"),
               subtitle: Text(formatDate(lastMaintenanceDate)),
               trailing: const Icon(Icons.calendar_today),
               onTap: selectLastMaintenanceDate,
             ),
-
             DropdownButtonFormField<int>(
               value: intervalMonths,
               decoration: const InputDecoration(labelText: "Bakım Periyodu"),
@@ -116,22 +132,19 @@ class _AddDevicePageState extends State<AddDevicePage> {
                 });
               },
             ),
-
             const SizedBox(height: 20),
-
             Card(
               child: ListTile(
                 leading: const Icon(Icons.event_available),
-                title: const Text("Sonraki Bakım Tarihi"),
+                title: const Text("Yeni Sonraki Bakım Tarihi"),
                 subtitle: Text(formatDate(nextMaintenanceDate)),
               ),
             ),
-
             const SizedBox(height: 30),
-
-            ElevatedButton(
-              onPressed: saveDevice,
-              child: const Text("Kaydet"),
+            ElevatedButton.icon(
+              onPressed: updateDevice,
+              icon: const Icon(Icons.save),
+              label: const Text("Güncelle"),
             ),
           ],
         ),
